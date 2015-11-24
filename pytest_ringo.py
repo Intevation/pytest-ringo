@@ -27,7 +27,8 @@ def _registry(app_config):
 @pytest.fixture(scope="session")
 def app(app_config):
     name = app_config.context.distribution.project_name
-    app = __import__(name).main({}, **app_config)
+    distribution = __import__(name)
+    app = distribution.main({}, **app_config)
     return TestApp(app)
 
 
@@ -50,6 +51,35 @@ def apprequest(dbsession):
     request.context = Mock()
     request.session.get_csrf_token = lambda: "xxx"
     return request
+
+
+def login(app, username, password, status=302):
+    '''Will login the user with username and password. On default we we do
+    a check on a successfull login (status 302).'''
+    logout(app)
+    response = app.post('/auth/login',
+        params={'login': username,
+                'pass': password},
+        status=status
+    )
+    return response
+
+
+def logout(app):
+    'Logout the currently logged in user (if any)'
+    response = app.get('/auth/logout',
+        params={},
+        status=302
+    )
+    return response
+
+
+def transaction_begin(app):
+    return app.get("/_test_case/start").follow().follow()
+
+
+def transaction_rollback(app):
+    return app.get("/_test_case/stop").follow().follow()
 
 
 @pytest.fixture(scope="session")
