@@ -93,5 +93,5 @@ def app_config(request):
 
 def pytest_addoption(parser):
     parser.addoption("--app-config", action="store",
-                     default=None,
+                     default="test.ini",
                      help="Path to the application config file")
