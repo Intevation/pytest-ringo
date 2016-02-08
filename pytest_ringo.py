@@ -21,6 +21,7 @@ def _registry(app_config):
     name = app_config.context.distribution.project_name
     registry = Registry(name)
     registry.settings = app_config
+    testing.setUp(registry)
     return registry
 
 
@@ -36,7 +37,6 @@ def app(app_config):
 def apprequest(dbsession, _registry):
     from ringo.lib.cache import Cache
     from ringo.lib.request import RingoRequest
-    testing.setUp(_registry)
     request = testing.DummyRequest()
     request.ringo = RingoRequest(request)
     request.cache_item_modul = Cache()
