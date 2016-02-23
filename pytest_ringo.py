@@ -3,6 +3,7 @@
 
 import os
 import pytest
+import json
 from paste.deploy.loadwsgi import appconfig
 from mock import Mock
 from pyramid import testing
@@ -80,6 +81,17 @@ def transaction_begin(app):
 
 def transaction_rollback(app):
     return app.get("/_test_case/stop").follow().follow()
+
+
+def get_max_id(app, table):
+    result = app.get("/rest/%s" % table)
+    data = json.loads(result.json["data"])
+    return sorted(data, key=lambda x: int(x["id"]))[-1]["id"]
+
+
+def get_data(app, table, id):
+    result = app.get("/rest/%s/%s" % (table, id))
+    return json.loads(result.json["data"])[0]
 
 
 @pytest.fixture(scope="session")
