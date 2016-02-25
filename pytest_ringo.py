@@ -92,9 +92,29 @@ def get_max_id(app, table):
     return sorted(data, key=lambda x: int(x["id"]))[-1]["id"]
 
 
-def get_data(app, table, id):
-    result = app.get("/rest/%s/%s" % (table, id))
-    return json.loads(result.json["data"])[0]
+def get_data(app, table, id=None):
+    if id is None:
+        result = app.get("/rest/%s" % (table))
+        data = json.loads(result.json["data"])
+        return data
+    else:
+        result = app.get("/rest/%s/%s" % (table, id))
+        data = json.loads(result.json["data"])[0]
+        return data
+
+
+def search_data(app, table, where, value):
+    data = get_data(app, table)
+    found = []
+    for item in data:
+        if item.get(where) == value:
+            found.append(item)
+    if len(found) > 1:
+        return found
+    elif len(found) == 1:
+        return found[0]
+    else:
+        return None
 
 
 @pytest.fixture(scope="session")
