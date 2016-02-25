@@ -16,7 +16,7 @@ setup(
     license='MIT',
     description='pytest plugin to test webapplications using the Ringo webframework',
     long_description=read("README.md"),
-    version='0.1.3',
+    version='0.2.0',
     author='Torsten Irländer',
     author_email='torsten.irlaender@googlemail.com',
     url='http://github.com/toirl/pytest-ringo/',
