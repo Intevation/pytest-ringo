@@ -37,9 +37,7 @@ def app(app_config):
 @pytest.fixture()
 def apprequest(dbsession, _registry):
     from ringo.lib.cache import Cache
-    from ringo.lib.request import RingoRequest
     request = testing.DummyRequest()
-    request.ringo = RingoRequest(request)
     request.cache_item_modul = Cache()
     request.cache_item_list = Cache()
 
