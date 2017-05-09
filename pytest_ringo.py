@@ -47,6 +47,10 @@ def apprequest(dbsession, _registry):
 
     request.user = user
 
+    ringo = Mock()
+    ringo.locale = None
+    request.ringo = ringo
+
     request.accept_language = Mock(return_value="en")
     request.translate = lambda x: x
     request.db = dbsession
