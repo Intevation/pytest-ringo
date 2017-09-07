@@ -35,8 +35,9 @@ def app(app_config):
 
 
 @pytest.fixture()
-def apprequest(dbsession, _registry):
+def apprequest(app_config):
     from ringo.lib.cache import Cache
+    from ringo.lib.sql.db import DBSession, setup_db_engine, setup_db_session
     request = testing.DummyRequest()
     request.cache_item_modul = Cache()
     request.cache_item_list = Cache()
@@ -47,9 +48,11 @@ def apprequest(dbsession, _registry):
 
     request.user = user
 
+    setup_db_session(setup_db_engine(app_config), app_config)
+    request.db = DBSession()
+
     request.accept_language = Mock(return_value="en")
     request.translate = lambda x: x
-    request.db = dbsession
     request.context = Mock()
     request.session.get_csrf_token = lambda: "xxx"
     return request

@@ -22,7 +22,7 @@ setup(
     url='http://github.com/toirl/pytest-ringo/',
     py_modules=['pytest_ringo'],
     entry_points={'pytest11': ['ringo = pytest_ringo']},
-    install_requires=['ringo', 'webtest', 'mock', 'coverage', 'pytest-sqlalchemy', 'pytest>=2.0', 'pytest-cov'],
+    install_requires=['ringo', 'webtest', 'mock', 'coverage', 'pytest>=2.0', 'pytest-cov'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Topic :: Software Development :: Testing',
