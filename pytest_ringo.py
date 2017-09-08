@@ -34,7 +34,7 @@ def app(app_config):
     return TestApp(app)
 
 
-@pytest.fixture()
+@pytest.yield_fixture()
 def apprequest(app_config):
     from ringo.lib.cache import Cache
     from ringo.lib.sql.db import DBSession, setup_db_engine, setup_db_session
@@ -55,7 +55,10 @@ def apprequest(app_config):
     request.translate = lambda x: x
     request.context = Mock()
     request.session.get_csrf_token = lambda: "xxx"
-    return request
+
+    yield request
+
+    DBSession.close()
 
 
 def login(app, username, password, status=302):
