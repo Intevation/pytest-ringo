@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-
+import functools
 import os
 import pytest
 import json
@@ -128,3 +128,31 @@ def pytest_addoption(parser):
     parser.addoption("--app-config", action="store",
                      default="test.ini",
                      help="Path to the application config file")
+
+def login_with(username, password):
+    """
+    Decorator function used for convenience test setups.
+    Usually you have the workflow of logging a user in,
+    doing stuff, make assertions and rolling back your
+    modifications of the database.
+
+    To make things easier you could omit boilerplate setup
+    simply by decorating the test like
+
+    @login_with(username="$NAME", password="$SECRETPASSWORD")
+    def test_whatever(self, app)
+
+    :param username: String containing the login name
+    :param password: String containing the password
+    :return: decorated function
+    """
+    def wrapper(f):
+        @functools.wraps(f)
+        def inner(self, app):
+            login(app, username, password)
+            transaction_begin(app)
+            f(self, app)
+            transaction_rollback(app)
+
+        return inner
+    return wrapper
