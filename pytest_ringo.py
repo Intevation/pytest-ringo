@@ -132,9 +132,6 @@ def pytest_addoption(parser):
 def login_with(username, password):
     """
     Decorator function used for convenience test setups.
-    Usually you have the workflow of logging a user in,
-    doing stuff, make assertions and rolling back your
-    modifications of the database.
 
     To make things easier you could omit boilerplate setup
     simply by decorating the test like
@@ -150,9 +147,27 @@ def login_with(username, password):
         @functools.wraps(f)
         def inner(self, app):
             login(app, username, password)
-            transaction_begin(app)
             f(self, app)
-            transaction_rollback(app)
-
         return inner
     return wrapper
+
+def transactional(f):
+    """
+    Transactional puts the given test into a transactional
+    context, where your modifications to the database are
+    not persistent.
+    Is a good addition to login_with
+
+    @login_with(username="$NAME", password="$SECRETPASSWORD")
+    @transactional
+    def test_whatever(self, app)
+
+    :param f: function to be decorated
+    :return: decorated function
+    """
+    @functools.wraps(f)
+    def inner(self, app):
+        transaction_begin(app)
+        f(self, app)
+        transaction_rollback(app)
+    return inner
