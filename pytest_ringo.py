@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-
+import functools
 import os
 import pytest
 import json
@@ -34,9 +34,10 @@ def app(app_config):
     return TestApp(app)
 
 
-@pytest.fixture()
-def apprequest(dbsession, _registry):
+@pytest.yield_fixture()
+def apprequest(app_config):
     from ringo.lib.cache import Cache
+    from ringo.lib.sql.db import DBSession, setup_db_engine, setup_db_session
     request = testing.DummyRequest()
     request.cache_item_modul = Cache()
     request.cache_item_list = Cache()
@@ -50,13 +51,17 @@ def apprequest(dbsession, _registry):
     ringo = Mock()
     ringo.locale = None
     request.ringo = ringo
+    setup_db_session(setup_db_engine(app_config), app_config)
+    request.db = DBSession()
 
     request.accept_language = Mock(return_value="en")
     request.translate = lambda x: x
-    request.db = dbsession
     request.context = Mock()
     request.session.get_csrf_token = lambda: "xxx"
-    return request
+
+    yield request
+
+    DBSession.close()
 
 
 def login(app, username, password, status=302):
@@ -132,3 +137,46 @@ def pytest_addoption(parser):
     parser.addoption("--app-config", action="store",
                      default="test.ini",
                      help="Path to the application config file")
+
+def login_with(username, password):
+    """
+    Decorator function used for convenience test setups.
+
+    To make things easier you could omit boilerplate setup
+    simply by decorating the test like
+
+    @login_with(username="$NAME", password="$SECRETPASSWORD")
+    def test_whatever(self, app)
+
+    :param username: String containing the login name
+    :param password: String containing the password
+    :return: decorated function
+    """
+    def wrapper(f):
+        @functools.wraps(f)
+        def inner(self, app):
+            login(app, username, password)
+            f(self, app)
+        return inner
+    return wrapper
+
+def transactional(f):
+    """
+    Transactional puts the given test into a transactional
+    context, where your modifications to the database are
+    not persistent.
+    Is a good addition to login_with
+
+    @login_with(username="$NAME", password="$SECRETPASSWORD")
+    @transactional
+    def test_whatever(self, app)
+
+    :param f: function to be decorated
+    :return: decorated function
+    """
+    @functools.wraps(f)
+    def inner(self, app):
+        transaction_begin(app)
+        f(self, app)
+        transaction_rollback(app)
+    return inner
